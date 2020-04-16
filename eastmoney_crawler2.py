@@ -11,7 +11,7 @@ import os
 import time
 
 # 设置文件保存在D盘eastmoney文件夹下
-file_path = 'D:\\eastmoney'
+file_path = './data/'
 if not os.path.exists(file_path):
     os.mkdir(file_path)
 os.chdir(file_path)
@@ -29,7 +29,7 @@ def set_table():
     year = int(float(input('请输入要查询的年份(四位数2007-2018)：\n')))
     # int表示取整，里面加float是因为输入的是str，直接int会报错，float则不会
     # https://stackoverflow.com/questions/1841565/valueerror-invalid-literal-for-int-with-base-10
-    while (year < 2007 or year > 2018):
+    while (year < 2007 or year > 2019):
         year = int(float(input('年份数值输入错误，请重新输入：\n')))
 
     quarter = int(float(input('请输入小写数字季度(1:1季报，2-年中报，3：3季报，4-年报)：\n')))
@@ -124,7 +124,8 @@ def page_choose(page_all):
     }
 
 # 3 表格正式爬取
-def get_table(date, category_type,st,sr,filter,page):
+def get_table(date, category_type,st,sr,filter,page, retry=True):
+    print('\n正在下载第 %s 页表格' % page)
     # 参数设置
     params = {
         # 'type': 'CWBB_LRB',
@@ -141,7 +142,13 @@ def get_table(date, category_type,st,sr,filter,page):
     url = 'http://dcfm.eastmoney.com/em_mutisvcexpandinterface/api/js/get?'
 
     # print(url)
-    response = requests.get(url, params=params).text
+    try:
+        response = requests.get(url, params=params).text
+    except requests.exceptions:
+        if retry:
+            print("\n download error, retry after 1 s")
+            time.sleep(1)
+            response = requests.get(url, params=params).text
     # print(response)
     # 确定页数
     pat = re.compile('var.*?{pages:(\d+),data:.*?')
@@ -173,7 +180,6 @@ def write_header(data,category):
         writer.writerow(headers)
 
 def write_table(data,page,category):
-    print('\n正在下载第 %s 页表格' % page)
     # 写入文件方法1
     for d in data:
         with open('{}.csv' .format(category), 'a', encoding='utf_8_sig', newline='') as f:
@@ -185,6 +191,8 @@ def main(date, category_type,st,sr,filter,page):
     data = func[1]
     page = func[2]
     write_table(data,page,category)
+
+
 
 
 if __name__ == '__main__':
@@ -208,7 +216,7 @@ if __name__ == '__main__':
     write_header(constant[1],category)
     start_time = time.time()  # 下载开始时间
     # 爬取表格主程序
-    for page in range(start_page, end_page):
+    for page in range(start_page, end_page+1):
         main(date,category_type,st,sr,filter, page)
     
     end_time = time.time() - start_time  # 结束时间

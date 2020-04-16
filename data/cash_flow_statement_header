@@ -1,0 +1,11 @@
+scode  代码
+sname  名称
+nicashequi  净现金流(元)
+nicashequi_tb * 100  同比增长(%)
+netoperatecashflow  经营性现金流现金流量净额(元)
+netoperatecashflow_zb * 100  净现金流占比(%)
+netinvcashflow  投资性现金流现金流量净额(元)
+netinvcashflow_zb * 100  净现金流占比(%)
+netfinacashflow  融资性现金流现金流量净额(元)
+netfinacashflow_zb * 100  净现金流占比(%)  
+noticedate  公告日期
