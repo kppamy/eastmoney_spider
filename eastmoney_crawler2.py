@@ -9,6 +9,7 @@ import csv
 import pandas as pd
 import os
 import time
+from datetime import datetime
 
 # 设置文件保存在D盘eastmoney文件夹下
 file_path = './data/'
@@ -16,25 +17,38 @@ if not os.path.exists(file_path):
     os.mkdir(file_path)
 os.chdir(file_path)
 
-       
+
+def get_int_input(instruction, default):
+    # int表示取整，里面加float是因为输入的是str，直接int会报错，float则不会
+    # https://stackoverflow.com/questions/1841565/valueerror-invalid-literal-for-int-with-base-10
+    var = input(instruction+'\n')
+    if var.isdigit():
+        res = int(var)
+    elif var == '':
+        res = default
+    return res
 
 # 1 设置表格爬取时期
 def set_table():
     print('*' * 80)
-    print('\t\t\t\t东方财富网报表下载')
-    print('作者：高级农民工  2018.10.10')
+    print('\t\t\t\teast money')
+    print('Author  Cay\'s Day Dream 2020.08.27')
     print('--------------')
 
     # 1 设置财务报表获取时期
-    year = int(float(input('请输入要查询的年份(四位数2007-2018)：\n')))
-    # int表示取整，里面加float是因为输入的是str，直接int会报错，float则不会
-    # https://stackoverflow.com/questions/1841565/valueerror-invalid-literal-for-int-with-base-10
-    while (year < 2007 or year > 2019):
-        year = int(float(input('年份数值输入错误，请重新输入：\n')))
 
-    quarter = int(float(input('请输入小写数字季度(1:1季报，2-年中报，3：3季报，4-年报)：\n')))
-    while (quarter < 1 or quarter > 4):
-        quarter = int(float(input('季度数值输入错误，请重新输入：\n')))
+    lastyear = datetime.today().year - 1
+
+    year = get_int_input('Please input year： ', lastyear)
+
+    quarter = get_int_input('Which quarter: (1: First quarter: ，2: Second quarter，3：Third Quarter，4: Year report)：', 4)
+
+    #
+    # quarter = int(float(input('请输入小写数字季度(1:1季报，2-年中报，3：3季报，4-年报)：\n')))
+    # if quarter == '':
+    #     quarter = 4
+    # while (quarter < 1 or quarter > 4):
+    #     quarter = int(float(input('季度数值输入错误，请重新输入：\n')))
 
     # 转换为所需的quarter 两种方法,2表示两位数，0表示不满2位用0补充，
     # http://www.runoob.com/python/att-string-format.html
@@ -50,11 +64,16 @@ def set_table():
     # print('date:', date)  # 测试日期 ok
 
     # 2 设置财务报表种类
-    tables = int(
-        input('请输入查询的报表种类对应的数字(1-业绩报表；2-业绩快报表：3-业绩预告表；4-预约披露时间表；5-资产负债表；6-利润表；7-现金流量表): \n'))
+    # tables = int(
+    #     input('请输入查询的报表种类对应的数字(1-业绩报表；2-业绩快报表：3-业绩预告表；4-预约披露时间表；5 financial_statement；6-利润表；7-现金流量表): \n'))
 
-    dict_tables = {1: '业绩报表', 2: '业绩快报表', 3: '业绩预告表',
-                   4: '预约披露时间表', 5: '资产负债表', 6: '利润表', 7: '现金流量表'}
+    tables = int(
+        input('Which type of statement do you want: (1 performance_statement； 2 early_performance_statement;'
+              '3 performance_forecast_statement；4 date_announce_statement；''5 financial_statement；'
+              '6 profit_statement；7 cash_flow_statement): \n'))
+
+    dict_tables = {1: 'performance_statement', 2: 'early_performance_statement', 3: 'performance_forecast_statement',
+                   4: 'date_announce_statement', 5: 'financial_statement', 6: 'profit_statement', 7: 'cash_flow_statement'}
 
     dict = {1: 'YJBB', 2: 'YJKB', 3: 'YJYG',
             4: 'YYPL', 5: 'ZCFZB', 6: 'LRB', 7: 'XJLLB'}
@@ -104,18 +123,10 @@ def set_table():
 # 2 设置表格爬取起始页数
 def page_choose(page_all):
 
-    # 选择爬取页数范围    
-    start_page = int(input('请输入下载起始页数：\n'))
-    nums = input('请输入要下载的页数，（若需下载全部则按回车）：\n')
-    print('*' * 80)
-
-    # 判断输入的是数值还是回车空格
-    if nums.isdigit():
-        end_page = start_page + int(nums)
-    elif nums == '':
-        end_page = int(page_all.group(1))
-    else:
-        print('页数输入错误')
+    # 选择爬取页数范围
+    start_page = get_int_input('Please enter page start No：', 1)
+    nums = get_int_input('How many pages do you want? ', int(page_all.group(1)))
+    end_page = start_page + nums
 
     # 返回所需的起始页数，供后续程序调用
     yield{
@@ -125,7 +136,7 @@ def page_choose(page_all):
 
 # 3 表格正式爬取
 def get_table(date, category_type,st,sr,filter,page, retry=True):
-    print('\n正在下载第 %s 页表格' % page)
+    print('\nDownloading %s th form' % page)
     # 参数设置
     params = {
         # 'type': 'CWBB_LRB',
@@ -144,7 +155,7 @@ def get_table(date, category_type,st,sr,filter,page, retry=True):
     # print(url)
     try:
         response = requests.get(url, params=params).text
-    except requests.exceptions:
+    except Exception:
         if retry:
             print("\n download error, retry after 1 s")
             time.sleep(1)
@@ -192,9 +203,6 @@ def main(date, category_type,st,sr,filter,page):
     page = func[2]
     write_table(data,page,category)
 
-
-
-
 if __name__ == '__main__':
     # 获取总页数，确定起始爬取页数
     for i in set_table():
@@ -220,5 +228,5 @@ if __name__ == '__main__':
         main(date,category_type,st,sr,filter, page)
     
     end_time = time.time() - start_time  # 结束时间
-    print('下载完成')
-    print('下载用时: {:.1f} s' .format(end_time))
+    print('Download completed')
+    print('Time cost: {:.1f} s' .format(end_time))
