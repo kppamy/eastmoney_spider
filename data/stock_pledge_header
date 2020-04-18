@@ -1,0 +1,12 @@
+scode 股票代码
+sname 股票简称 
+tdate  交易日期
+amtshareratio  质押比例
+bballowance  质押股数
+zysz  质押市值
+amtsharenum  质押笔数
+bbyallowance  无限售股质押数
+bbwallowance  限售股质押数
+zdf 近年来涨跌幅
+hy  所属行业
+                                                                                                                                                                                                                                                                                                                                                                      }

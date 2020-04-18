@@ -1,5 +1,5 @@
 """
-e.g: http://data.eastmoney.com/bbsj/201806/lrb.html
+e.g: http://data.eastmoney.com/bbsj/201912/lrb.html
 """
 import requests
 import re
@@ -27,6 +27,7 @@ def get_int_input(instruction, default):
     elif var == '':
         res = default
     return res
+
 
 # 1 设置表格爬取时期
 def set_table():
@@ -68,15 +69,16 @@ def set_table():
     #     input('请输入查询的报表种类对应的数字(1-业绩报表；2-业绩快报表：3-业绩预告表；4-预约披露时间表；5 financial_statement；6-利润表；7-现金流量表): \n'))
 
     tables = int(
-        input('Which type of statement do you want: (1 performance_statement； 2 early_performance_statement;'
-              '3 performance_forecast_statement；4 date_announce_statement；''5 financial_statement；'
-              '6 profit_statement；7 cash_flow_statement): \n'))
+        input('Which type of statement do you want: \n (1 performance_statement； 2 early_performance_statement;'
+              '3 performance_forecast_statement；4 date_announce_statement；\n''5 financial_statement；'
+              '6 profit_statement；7 cash_flow_statement); 8 stock_pledge: \n'))
 
     dict_tables = {1: 'performance_statement', 2: 'early_performance_statement', 3: 'performance_forecast_statement',
-                   4: 'date_announce_statement', 5: 'financial_statement', 6: 'profit_statement', 7: 'cash_flow_statement'}
+                   4: 'date_announce_statement', 5: 'financial_statement', 6: 'profit_statement', 7: 'cash_flow_statement'
+                   , 8: 'stock_pledge'}
 
     dict = {1: 'YJBB', 2: 'YJKB', 3: 'YJYG',
-            4: 'YYPL', 5: 'ZCFZB', 6: 'LRB', 7: 'XJLLB'}
+            4: 'YYPL', 5: 'ZCFZB', 6: 'LRB', 7: 'XJLLB', 8: 'ZD_QL_LB'}
     category = dict[tables]
 
     # js请求参数里的type，第1-4个表的前缀是'YJBB20_'，后3个表是'CWBB_'
@@ -101,6 +103,11 @@ def set_table():
         st = 'frdate'
         sr = 1
         filter =  "(securitytypecode ='058001001')(reportdate=^%s^)" %(date)
+    elif tables == 8:
+        category_type = ''
+        st = 'amtshareratio'
+        sr = -1
+        filter = '(tdate=^2020-04-10^)'
     else:
         category_type = 'CWBB_'
         st = 'noticedate'
@@ -120,6 +127,7 @@ def set_table():
     'filter':filter
     }
 
+
 # 2 设置表格爬取起始页数
 def page_choose(page_all):
 
@@ -134,9 +142,10 @@ def page_choose(page_all):
         'end_page': end_page
     }
 
+
 # 3 表格正式爬取
 def get_table(date, category_type,st,sr,filter,page, retry=True):
-    print('\nDownloading %s th form' % page)
+    print('\nDownloading page No.%s' % page)
     # 参数设置
     params = {
         # 'type': 'CWBB_LRB',
@@ -157,10 +166,16 @@ def get_table(date, category_type,st,sr,filter,page, retry=True):
         response = requests.get(url, params=params).text
     except Exception:
         if retry:
-            print("\n download error, retry after 1 s")
+            print("\n Download error, retry after 1 s")
             time.sleep(1)
             response = requests.get(url, params=params).text
     # print(response)
+    # from html.parser import HTMLParser
+    # html_parser = HTMLParser()
+    # response = html_parser.unescape(response)
+    # # response.replace('&#x', '\\x').encode('utf-8').decode('unicode_escape')
+    # print(response)
+
     # 确定页数
     pat = re.compile('var.*?{pages:(\d+),data:.*?')
     page_all = re.search(pat, response)
@@ -181,6 +196,7 @@ def get_table(date, category_type,st,sr,filter,page, retry=True):
 
     return page_all, data,page
 
+
 # 写入表头
 # 方法1 借助csv包，最常用
 def write_header(data,category):
@@ -190,6 +206,7 @@ def write_header(data,category):
         writer = csv.writer(f)
         writer.writerow(headers)
 
+
 def write_table(data,page,category):
     # 写入文件方法1
     for d in data:
@@ -197,11 +214,13 @@ def write_table(data,page,category):
             w = csv.writer(f)
             w.writerow(d.values())
 
+
 def main(date, category_type,st,sr,filter,page):
     func = get_table(date, category_type,st,sr,filter,page)
     data = func[1]
     page = func[2]
     write_table(data,page,category)
+
 
 if __name__ == '__main__':
     # 获取总页数，确定起始爬取页数
