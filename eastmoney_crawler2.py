@@ -71,16 +71,17 @@ def set_table():
     tables = int(
         input('Which type of statement do you want: \n (1 performance_statement； 2 early_performance_statement;'
               '3 performance_forecast_statement；4 date_announce_statement；\n''5 financial_statement；'
-              '6 profit_statement；7 cash_flow_statement); 8 stock_pledge: \n'))
+              '6 profit_statement；7 cash_flow_statement; 8 stock_pledge； 9 dividend;\n'))
 
     dict_tables = {1: 'performance_statement', 2: 'early_performance_statement', 3: 'performance_forecast_statement',
                    4: 'date_announce_statement', 5: 'financial_statement', 6: 'profit_statement', 7: 'cash_flow_statement'
-                   , 8: 'stock_pledge'}
+                   , 8: 'stock_pledge', 9: 'dividend_data'}
 
     dict = {1: 'YJBB', 2: 'YJKB', 3: 'YJYG',
-            4: 'YYPL', 5: 'ZCFZB', 6: 'LRB', 7: 'XJLLB', 8: 'ZD_QL_LB'}
+            4: 'YYPL', 5: 'ZCFZB', 6: 'LRB', 7: 'XJLLB', 8: 'ZD_QL_LB',9:'DCSOBS'}
     category = dict[tables]
-
+    category_type = ''
+    st = ''
     # js请求参数里的type，第1-4个表的前缀是'YJBB20_'，后3个表是'CWBB_'
     # 设置set_table()中的type、st、sr、filter参数
     if tables == 1:
@@ -104,15 +105,18 @@ def set_table():
         sr = 1
         filter =  "(securitytypecode ='058001001')(reportdate=^%s^)" %(date)
     elif tables == 8:
-        category_type = ''
         st = 'amtshareratio'
         sr = -1
         filter = '(tdate=^2020-04-10^)'
+    elif tables == 9:
+        filter = "(reportdate=^%s^)" %(date)
+        sr = -1
+        st = 'YAGGR'
     else:
         category_type = 'CWBB_'
         st = 'noticedate'
         sr = -1
-        filter = '(reportdate=^%s^)' % (date)
+        filter = '(ReportingPeriod=^%s^)' % (date)
 
     category_type = category_type + category
     # print(category_type)
@@ -144,7 +148,7 @@ def page_choose(page_all):
 
 
 # 3 表格正式爬取
-def get_table(date, category_type,st,sr,filter,page, retry=True):
+def get_table(date, category_type,st,sr,filter,page,url=None, retry=True):
     print('\nDownloading page No.%s' % page)
     # 参数设置
     params = {
@@ -160,8 +164,6 @@ def get_table(date, category_type,st,sr,filter,page, retry=True):
         # 'rt': 51294261  可不用
     }
     url = 'http://dcfm.eastmoney.com/em_mutisvcexpandinterface/api/js/get?'
-
-    # print(url)
     try:
         response = requests.get(url, params=params).text
     except Exception:

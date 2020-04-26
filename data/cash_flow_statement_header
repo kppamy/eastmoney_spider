@@ -9,3 +9,7 @@ netinvcashflow_zb * 100  净现金流占比(%)
 netfinacashflow  融资性现金流现金流量净额(元)
 netfinacashflow_zb * 100  净现金流占比(%)  
 noticedate  公告日期
+cashequiending 期末现金及现金等价物余额
+cashequibeginning 期初现金及现金等价物余额
+buyfilassetpay 构建固定资产、无形资产和其他长期资产支付的现金
+
