@@ -10,6 +10,97 @@ import pandas as pd
 import os
 import time
 from datetime import datetime
+import qutils.futils as fu
+
+# FontMapping= [{code: "&#xEEC5;", value: 1},
+#               {code: "&#xECEA;", value: 2},
+#               {code: "&#xEA5D;", value: 3},
+#               {code: "&#xF78F;", value: 4},
+#               {code: "&#xEBED;", value: 5},
+#               {code: "&#xF2FF;", value: 6},
+#               {code: "&#xF4CD;", value: 7},
+#               {code: "&#xF2F8;", value: 8},
+#               {code: "&#xE4E5;", value: 9},
+#               {code: "&#xE268;", value: 0}],
+
+
+
+
+
+# "&#xE793;" : 1,
+# "&#xECEA;":2,
+# "&#xF3C3;":3,
+# "&#xE891;" :5
+# "&#xE7A3;": 6,
+# "&#xF05A;" :7,
+# "&#xE8BC;" :8
+#
+#
+# "&#xE268;":4,
+# "&#xECEA";5,
+#
+# "&#xECD9;" :1,
+# "&#xF3C3;" :2,
+
+
+
+
+
+
+PLEDGE_DICT={
+    # 0-50
+    "&#xF05A;":1,
+    "&#xECEA;":2,
+    "&#xE793;":3,
+    "&#xF137;":4,
+    "&#xEE3A;":5,
+    "&#xECD9;":6,
+    "&#xE375;":7,
+    "&#xECE9;":8,
+    "&#xE0D4;":9,
+    "&#xF78F;":0,
+    # 50-100
+    "&#xF275;": 1,
+    "&#xEBC0;": 2,
+    "&#xECD9;": 3,
+    "&#xE0D4;": 4,
+    "&#xF2FF;": 5,
+    "&#xF3C3;": 6,
+    "&#xE4E5;": 7,
+    "&#xF4CD;": 8,
+    "&#xE268;": 9,
+    "&#xE712;": 0
+}
+
+
+PLEDGE_DICT3 = {
+    "&#xE80C;": 1,
+    "&#xE268;": 2,
+    "&#xEE3A;": 3,
+    "&#xE793;": 4,
+    "&#xF3C3;": 5,
+    "&#xE375;": 6,
+    "&#xE891;": 7,
+    "&#xE712;": 9,
+    "&#xF137;": 0
+}
+
+
+
+
+
+PLEDGE_DICT2={
+    "&#xF275;": 1,
+    "&#xEBC0;": 2,
+    "&#xECD9;": 3,
+    "&#xE0D4;": 4,
+    "&#xF2FF;": 5,
+    "&#xF3C3;": 6,
+    "&#xE4E5;": 7,
+    "&#xF4CD;": 8,
+    "&#xE268;": 9,
+    "&#xE712;": 0}
+
 
 # 设置文件保存在D盘eastmoney文件夹下
 file_path = './data/'
@@ -28,6 +119,10 @@ def get_int_input(instruction, default):
         res = default
     return res
 
+
+def convert(text):
+    for i in PLEDGE_DICT: text=text.replace(i,str(PLEDGE_DICT[i]))
+    return text
 
 # 1 设置表格爬取时期
 def set_table():
@@ -177,6 +272,11 @@ def get_table(date, category_type,st,sr,filter,page,url=None, retry=True):
     # response = html_parser.unescape(response)
     # # response.replace('&#x', '\\x').encode('utf-8').decode('unicode_escape')
     # print(response)
+
+    if category_type == 'ZD_QL_LB' and page == 1:
+        # for i in PLEDGE_DICT: response = response.replace(i, str(PLEDGE_DICT[i]))
+        print(response)
+        fu.save('response.txt',response)
 
     # 确定页数
     pat = re.compile('var.*?{pages:(\d+),data:.*?')
